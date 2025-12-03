@@ -11,11 +11,8 @@ export const fetchAllMovies = async (): Promise<Movie[]> => {
     let hasMore = true;
     let apiFailed = false;
 
-    console.log('Starting to fetch movies...');
-
-    while (hasMore && page <= 5) { // Limitar a 5 páginas para evitar loop infinito
+    while (hasMore && page <= 5) { // Limit to 5 pages to avoid infinite loop
       try {
-        console.log(`Fetching page ${page}...`);
 
         // Force fallback for testing purposes
         const apiUrl = FORCE_FALLBACK
@@ -32,13 +29,12 @@ export const fetchAllMovies = async (): Promise<Movie[]> => {
         }
 
         const data: PaginatedResponse = await response.json();
-        console.log(`Page ${page} response:`, data);
 
         if (data && data.data && data.data.length > 0) {
           allMovies = [...allMovies, ...data.data];
           page++;
 
-          // Verificar se chegou à última página
+          // Check if reached the last page
           if (page > data.last_page) {
             hasMore = false;
           }
@@ -52,14 +48,10 @@ export const fetchAllMovies = async (): Promise<Movie[]> => {
       }
     }
 
-    // Fallback: usar dados locais se a API falhar completamente
+    // Fallback: use local data if the API fails completely
     if (apiFailed && allMovies.length === 0) {
-      console.log('API failed, using fallback data from local JSON...');
       const fallbackData = fallbackResponse as unknown as PaginatedResponse;
       allMovies = fallbackData.data || [];
-      console.log(`Loaded ${allMovies.length} movies from local fallback`);
     }
-
-    console.log(`Total movies available: ${allMovies.length}`);
     return allMovies;
   };

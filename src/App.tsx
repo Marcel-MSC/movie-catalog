@@ -16,7 +16,7 @@ function App() {
     searchMovies(debouncedSearchQuery);
   }, [debouncedSearchQuery, searchMovies]);
 
-  // Função para detectar scroll próximo ao fim da página
+  // Function to detect scroll near the end of the page
   const handleScroll = useCallback(() => {
     if (loading || loadingMore || !hasMore) return;
 
@@ -24,7 +24,7 @@ function App() {
     const windowHeight = window.innerHeight;
     const documentHeight = document.documentElement.scrollHeight;
 
-    // Se estiver a 200px do fim da página
+    // If it's 200px from the end of the page
     if (scrollTop + windowHeight >= documentHeight - 200) {
       setLoadingMore(true);
       loadMoreMovies();
@@ -32,7 +32,7 @@ function App() {
     }
   }, [loading, loadingMore, hasMore, loadMoreMovies]);
 
-  // Adicionar listener de scroll
+  // Add scroll listener
   useEffect(() => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -53,9 +53,9 @@ function App() {
           onChange={setSearchQuery}
         />
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 items-start">
+        <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 items-start">
           {loading ? (
-            // Mostrar skeletons enquanto carrega
+            // Show skeletons while loading
             Array.from({ length: 6 }).map((_, index) => (
               <LoadingSkeleton key={index} />
             ))
@@ -65,7 +65,7 @@ function App() {
             ))
           )}
           {loadingMore && (
-            // Mostrar skeletons enquanto carrega mais
+            // Show skeletons while loading more
             Array.from({ length: 3 }).map((_, index) => (
               <LoadingSkeleton key={`loading-${index}`} />
             ))

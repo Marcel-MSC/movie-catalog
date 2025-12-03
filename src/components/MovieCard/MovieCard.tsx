@@ -20,7 +20,7 @@ const LazyImage: React.FC<LazyImageProps> = ({ src, alt, className = '' }) => {
         const [entry] = entries;
         if (entry.isIntersecting) {
           setIsInView(true);
-          observer.disconnect(); // Para de observar depois que entra na viewport
+          observer.disconnect(); // Stop observing after entering viewport
         }
       },
       {
@@ -81,7 +81,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-lg hover:shadow-2xl overflow-hidden border border-gray-100 transition-all duration-300 ease-in-out">
-      {/* Conteúdo básico */}
+      {/* Basic content */}
       <div className="p-4 cursor-pointer" onClick={handleToggleExpansion}>
         <div className="flex gap-4">
           <LazyImage
@@ -105,7 +105,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
         </div>
       </div>
 
-      {/* Seção expandida com animação suave */}
+      {/* Expanded section with smooth animation */}
       <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
         isExpanded ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
       }`}>

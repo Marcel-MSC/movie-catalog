@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Animações customizadas para expansão suave dos cards */
+/* Custom animations for smooth card expansion */
 @keyframes fade-in {
   from {
     opacity: 0;
