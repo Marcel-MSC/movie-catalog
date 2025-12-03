@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:fallback": "node -e \"console.log('Para testar fallback: altere FORCE_FALLBACK=true no movieService.ts')\""
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",

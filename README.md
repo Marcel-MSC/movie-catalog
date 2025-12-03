@@ -10,6 +10,7 @@ A modern and responsive movie catalog built with React, TypeScript and Tailwind 
 - ⚡ **Optimized Performance**: Lazy loading, search debounce and infinite pagination
 - 🎨 **Smooth Animations**: Fluid transitions with Framer Motion
 - 🖼️ **Smart Loading**: Images load only when visible on screen
+- 🔄 **Fallback System**: Local JSON backup when API fails
 
 ## 🚀 Technologies Used
 
@@ -215,6 +216,25 @@ interface Movie {
   // ... other fields
 }
 ```
+
+## 🧪 Como Testar o Sistema de Fallback
+
+### **Método 1: Flag de Teste (Recomendado)**
+1. **Edite** `src/services/movieService.ts`
+2. **Mude** `const FORCE_FALLBACK = false;` → `true`
+3. **Execute** `npm run dev`
+4. **Verifique** console: `"API failed, using fallback data..."`
+5. **Volte** para `false` após testar
+
+### **Método 2: Simular Offline**
+1. **DevTools** → Network → "Offline"
+2. **Recarregue** página
+3. **Confirme** dados locais carregam
+
+### **Método 3: Sem Internet**
+1. **Desconecte** internet
+2. **Recarregue** app
+3. **Verifique** funcionamento offline
 
 ## 📝 License
 
