@@ -1,6 +1,14 @@
 # 🎬 Movie Catalog
 
+[![Deployed on Netlify](https://img.shields.io/badge/netlify-%23000000.svg?style=for-the-badge&logo=netlify&logoColor=#00C58E)](https://movie-catalog-mmsc.netlify.app/)
+
 A modern and responsive movie catalog built with React, TypeScript and Tailwind CSS. Explore movies, search titles and view detailed information including cast.
+
+## 🚀 Live Demo
+
+🎯 **View the live application:** [https://movie-catalog-mmsc.netlify.app/](https://movie-catalog-mmsc.netlify.app/)
+
+*Experience the movie catalog with real-time search, smooth animations, and responsive design!*
 
 ## ✨ Features
 
