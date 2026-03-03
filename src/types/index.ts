@@ -46,3 +46,15 @@ export interface PaginatedResponse {
   to: number;
   total: number;
 }
+
+export type DataSource = 'jsonfakery' | 'tvmaze' | 'sampleapis' | 'ghibli' | 'staticjson';
+
+/** User rating + comment for a movie, stored in localStorage (key: mc_ratings). */
+export interface UserMovieRating {
+  stars: number;
+  comment: string;
+  updatedAt: string;
+  movieTitle?: string;
+  moviePosterPath?: string;
+  movieReleaseYear?: string;
+}

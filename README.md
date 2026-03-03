@@ -16,9 +16,10 @@ A modern and responsive movie catalog built with React, TypeScript and Tailwind 
 - 🔍 **Real-time Search**: Instant filtering based on original title (client-side)
 - 🎯 **Details Expansion**: Click cards to view more information and cast
 - ⚡ **Optimized Performance**: Lazy loading, search debounce and infinite pagination
-- 🎨 **Smooth Animations**: Fluid transitions with Framer Motion
+- 🎨 **Smooth Animations**: Fluid transitions with CSS animations and Tailwind classes
 - 🖼️ **Smart Loading**: Images load only when visible on screen
-- 🔄 **Fallback System**: Local JSON backup when API fails
+- 🔄 **Fallback System**: Local JSON backup when API fails (`src/data/movies.json`)
+- ⭐ **Your rating**: Rate movies 1–5 stars and add comments; data is stored in the browser (localStorage) per user or anonymously.
 
 ## 🚀 Technologies Used
 
@@ -26,7 +27,6 @@ A modern and responsive movie catalog built with React, TypeScript and Tailwind 
 - **TypeScript** - Static typing for greater reliability
 - **Tailwind CSS** - Utility-first CSS framework
 - **Vite** - Fast and modern build tool
-- **Framer Motion** - Animation library
 - **Heroicons** - Optimized SVG icons
 - **Intersection Observer** - Lazy loading for images
 
@@ -57,10 +57,10 @@ A modern and responsive movie catalog built with React, TypeScript and Tailwind 
 - Improved user experience with responsive feedback
 - Resource optimization for expensive operations
 
-### **6. Context API Pattern (Architectural)**
-- MoviesContext prepared for future state sharing needs
-- Typed interfaces for better TypeScript support
-- Extensible architecture for global state management
+### **6. Typed State with Custom Hooks**
+- State encapsulated em hooks customizados (`useMovies`, `useDebounce`)
+- Interfaces TypeScript para garantir contratos de dados entre camadas
+- Arquitetura pronta para futura adoção de Context API se necessário
 
 ## 📋 Minimum Requirements Met ✅
 
@@ -94,9 +94,15 @@ src/
 │   ├── useMovies.ts    # Movie state management
 │   └── useDebounce.ts  # Debounce hook
 ├── services/           # External services
-│   └── movieService.ts # API for fetching movies
+│   ├── movieService.ts # Orchestrator for fetching movies by source
+│   ├── templateMovieSourceService.ts # Template for adding new sources
+│   ├── tvmazeService.ts # TVMaze API
+│   ├── sampleApisService.ts # SampleAPIs
+│   ├── ghibliService.ts # Studio Ghibli API
+│   └── staticJsonService.ts # Static JSON datasets
 ├── types/              # TypeScript definitions
-│   └── index.ts        # Movie and PaginatedResponse interfaces
+│   ├── index.ts        # Movie, PaginatedResponse, DataSource
+│   └── apis/           # API-specific types (tvmaze, sampleapis, ghibli, staticJson)
 ├── App.tsx             # Main component
 └── main.tsx            # Entry point
 ```
@@ -143,6 +149,7 @@ src/
 - **useMovies**: Custom hook to manage movie state, search and pagination
 - Initial loading of all API pages for client-side search
 - Separate state for `allMovies` (complete dataset) and `displayedMovies` (filtered/paginated)
+- Limite de páginas configurável via constante `MAX_PAGES` em `src/services/movieService.ts` para evitar loops infinitos com APIs mal configuradas
 
 ### Performance
 - **Lazy Loading**: Images only load when entering viewport
@@ -151,15 +158,18 @@ src/
 - **Skeletons**: Loading states improve perceived performance
 
 ### UX/UI
-- **Framer Motion**: Smooth animations for hover, expansion and loading
+- **Smooth animations**: CSS keyframes and Tailwind transitions para hover, expansão e loading
 - **Gradient Backgrounds**: Visually appealing design
 - **Responsive Design**: Adaptive grid (1-3 columns)
 - **Visual States**: Hover effects and transitions
 
 ### API Integration
-- **jsonfakery.com**: Mock API for paginated movie data
-- **Error Handling**: Robust network error handling
-- **Type Safety**: TypeScript interfaces for all data
+- **TVMaze API** (`https://api.tvmaze.com`) para catálogo de séries
+- **SampleAPIs Movies** (`https://api.sampleapis.com/movies`) para coleções temáticas de filmes
+- **Studio Ghibli API** (`https://ghibliapi.vercel.app/films`) para filmes do estúdio Ghibli
+- **jsonfakery.com** (legado): Mock API original usada apenas como fallback opcional
+- **Error Handling**: Robust network error handling com fallback local em `src/data/movies.json`
+- **Type Safety**: TypeScript interfaces para cada API em `src/types/apis/*`
 
 ## 📊 Evaluation Criteria
 
@@ -167,7 +177,7 @@ src/
 - Lazy loading of images with Intersection Observer
 - Search debounce prevents unnecessary requests
 - Infinite pagination optimizes initial loading
-- Optimized animations with Framer Motion
+- Optimized animations com CSS e Tailwind
 
 ### ✅ Structure
 - Clear separation of responsibilities (components, hooks, services)
@@ -186,10 +196,14 @@ src/
 
 ### Component Structure
 
-**MovieCard**: Main component that displays basic information and expands to show cast
+**MovieCard**: Main component that displays basic information and expands to show extra details
 - LazyImage for optimized poster loading
-- Animations with Framer Motion
-- Toggle expansion with AnimatePresence
+- Animations com CSS e transições Tailwind
+- Toggle expansion com estado interno controlado por React
+- Expanded section shows extra details depending on the source:
+  - TVMaze: summary, genres, rating, language, year
+  - SampleAPIs: IMDb rating, genres, director/actors (via tagline)
+  - Ghibli: original Japanese title, description, year, runtime, synthetic \"Ghibli\" genre
 
 **SearchBar**: Search field with icon and modern styling
 - Integrated debounce via custom hook
@@ -208,22 +222,42 @@ src/
 **useDebounce**: Utility to delay executions
 - Prevents excessive search during typing
 
-## 🌐 API
+## 🌐 APIs utilizadas
 
-The project uses the mock API [jsonfakery.com/movies/paginated](https://jsonfakery.com/movies/paginated) which returns:
+- **TVMaze** (`/shows?page=0`) → mapeado para `Movie` via `tvmazeService.ts`
+- **SampleAPIs Movies** (`/movies/animation`) → mapeado para `Movie` via `sampleApisService.ts`
+- **Studio Ghibli API** (`/films`) → mapeado para `Movie` via `ghibliService.ts`
+- **Static JSON** (`/static-movies.json`) → catálogo de clássicos em `public/`, mapeado via `staticJsonService.ts`
+- **jsonfakery.com/movies/paginated** → usado apenas na fonte `jsonfakery` e como fallback legado
 
-```typescript
-interface Movie {
-  id: string;
-  original_title: string;
-  poster_path?: string;
-  release_date?: string;
-  vote_average?: number;
-  overview?: string;
-  casts?: Array<{ id: string; name: string }>;
-  // ... other fields
-}
-```
+## ➕ Adding new public movie sources (no auth)
+
+You can plug additional movie sources that require no authentication. Use `src/services/templateMovieSourceService.ts` as a reference.
+
+### Criteria for a new source
+
+- Accessible via `fetch` (CORS allowed, or same-origin as `/static-movies.json`)
+- No API key, token, or authentication
+- Returns at least: title, year or date, and some description/summary/tags
+
+### Step-by-step to add a new source
+
+1. **Create a type** in `src/types/apis/` for the raw payload (e.g. `XxxMovie`).
+2. **Create a service** in `src/services/` (e.g. `xxxService.ts`):
+   - Implement `mapXToMovie(raw: XxxMovie): Movie` to map to the common `Movie` type.
+   - Implement `fetchAllMoviesFromX(): Promise<Movie[]>` that fetches the URL and applies the mapper.
+3. **Add the source** to `DataSource` in `src/types/index.ts`.
+4. **Register the case** in `src/services/movieService.ts` inside the `switch`.
+5. **Add a button** in `App.tsx` to the source selector, and update the descriptive label.
+6. **Add a mapping test** in `src/services/__tests__/apiMappers.test.ts`.
+
+### Example: static JSON from GitHub
+
+For a JSON file hosted at `https://raw.githubusercontent.com/user/repo/main/movies.json`:
+
+- Create `src/types/apis/staticJson.ts` with an interface matching the JSON structure.
+- Create `src/services/staticJsonService.ts` with the mapper and fetcher (set `STATIC_MOVIES_URL` to the raw URL; ensure CORS allows `fetch` from your domain).
+- Add `'staticjson'` to `DataSource`, register in `movieService`, and add a button in `App.tsx`.
 
 ## 🧪 Como Testar o Sistema de Fallback
 
@@ -231,18 +265,18 @@ interface Movie {
 1. **Edite** `src/services/movieService.ts`
 2. **Mude** `const FORCE_FALLBACK = false;` → `true`
 3. **Execute** `npm run dev`
-4. **Verifique** console: `"API failed, using fallback data..."`
+4. **Verifique** no console a mensagem: `"API failed, using fallback data..."`
 5. **Volte** para `false` após testar
 
 ### **Método 2: Simular Offline**
 1. **DevTools** → Network → "Offline"
 2. **Recarregue** página
-3. **Confirme** dados locais carregam
+3. **Confirme** que os dados locais de `src/data/movies.json` são carregados
 
 ### **Método 3: Sem Internet**
 1. **Desconecte** internet
 2. **Recarregue** app
-3. **Verifique** funcionamento offline
+3. **Verifique** que o app continua funcionando com os dados de `src/data/movies.json`
 
 ## 📝 License
 

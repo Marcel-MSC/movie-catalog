@@ -1,60 +1,52 @@
-import { useState, useEffect, createContext } from 'react';
-import type { Movie } from '../types';
+import { useState, useEffect, useMemo } from 'react';
+import type { DataSource, Movie } from '../types';
 import { fetchAllMovies } from '../services/movieService';
 
-// Context API Pattern - Movies Context
-interface MoviesContextType {
-  movies: Movie[];
-  searchMovies: (query: string) => void;
-  loadMoreMovies: () => void;
-  loading: boolean;
-  hasMore: boolean;
-}
-
-const MoviesContext = createContext<MoviesContextType | undefined>(undefined);
-
-// Export only the hook and context
-export { MoviesContext };
-
-// Internal logic (Custom Hook Pattern)
-const useMoviesLogic = () => {
+const useMoviesLogic = (source: DataSource) => {
   const [allMovies, setAllMovies] = useState<Movie[]>([]);
   const [displayedMovies, setDisplayedMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const ITEMS_PER_PAGE = 20;
 
-  // Fetch all pages on mount
+  const filteredMovies = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query) {
+      return allMovies;
+    }
+
+    return allMovies.filter((movie) =>
+      movie.original_title.toLowerCase().includes(query)
+    );
+  }, [allMovies, searchQuery]);
+
+  // Fetch all movies when source changes
   useEffect(() => {
     const loadAllMovies = async () => {
       setLoading(true);
+      setError(null);
       try {
-        const movies = await fetchAllMovies();
+        const movies = await fetchAllMovies(source);
         setAllMovies(movies);
         setDisplayedMovies(movies.slice(0, ITEMS_PER_PAGE)); // Initial pagination
       } catch (error) {
         console.error('Error loading movies:', error);
+        setError('Failed to load movies. Please try again.');
       } finally {
         setLoading(false);
       }
     };
     loadAllMovies();
-  }, []);
+  }, [source]);
 
-  // Update displayedMovies when searchQuery changes
+  // Update displayedMovies when the filtered list changes
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setDisplayedMovies(allMovies.slice(0, ITEMS_PER_PAGE));
-      setCurrentPage(1);
-    } else {
-      const filtered = allMovies.filter(movie =>
-        movie.original_title.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setDisplayedMovies(filtered.slice(0, ITEMS_PER_PAGE));
-      setCurrentPage(1);
-    }
-  }, [searchQuery, allMovies]);
+    setDisplayedMovies(filteredMovies.slice(0, ITEMS_PER_PAGE));
+    setCurrentPage(1);
+  }, [filteredMovies]);
 
   // Search function
   const searchMovies = (query: string) => {
@@ -66,14 +58,7 @@ const useMoviesLogic = () => {
     const nextPage = currentPage + 1;
     const startIndex = currentPage * ITEMS_PER_PAGE;
 
-    let sourceMovies = allMovies;
-    if (searchQuery.trim()) {
-      sourceMovies = allMovies.filter(movie =>
-        movie.original_title.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    const newMovies = sourceMovies.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    const newMovies = filteredMovies.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
     if (newMovies.length > 0) {
       setDisplayedMovies(prev => [...prev, ...newMovies]);
@@ -82,19 +67,11 @@ const useMoviesLogic = () => {
   };
 
   // Check if there are more movies to load
-  const hasMore = (() => {
-    if (searchQuery.trim()) {
-      const filtered = allMovies.filter(movie =>
-        movie.original_title.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      return displayedMovies.length < filtered.length;
-    }
-    return displayedMovies.length < allMovies.length;
-  })();
+  const hasMore = displayedMovies.length < filteredMovies.length;
 
-  return { movies: displayedMovies, searchMovies, loadMoreMovies, loading, hasMore };
+  return { movies: displayedMovies, searchMovies, loadMoreMovies, loading, hasMore, error };
 };
 
-export const useMovies = () => {
-  return useMoviesLogic();
+export const useMovies = (source: DataSource) => {
+  return useMoviesLogic(source);
 };
